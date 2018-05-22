@@ -48,34 +48,37 @@
 
 "use strict";
   var countAction = 4;
+  var countButton = 0;
 
-  function addButton() {
+  function addButton(value, name) {
 	var b = document.createElement('button');
-	b.value = "myValue";
-	b.name = "myName";
-	b.innerHTML = "new button";
+	b.value = value;
+	b.name = "newButton"+countButton;
+	b.innerHTML = name;
 	b.addEventListener('click', addText);
 	rightpanel.appendChild(b);
   }
   
   function addText(e) {
-    t = e.target.value;
-	var textElem = document.createTextNode(t);
+	var textElem = document.createTextNode(e.target.value);
 	leftpanel.appendChild(textElem);
+
   }
   
-function myUpdate() {
+function myUpdate(message) {
+   for (var i=rightpanel.childNodes.length-1;i>1 ; i--) {
+        rightpanel.removeChild(rightpanel.childNodes[i]);
+   }
 
+     var rooms = JSON.parse(message.data);
+    
+    for (i=0;i<rooms.length;i++) {
+        addButton(rooms[i].name,rooms[i].name);
+    }
 }
 
     const ws = new WebSocket('ws://127.0.0.1:8081/ws');
-        ws.onmessage = (message) => {
-
-            var room = JSON.parse(message.data);
-
-            var textElem = document.createTextNode(message.data);
-            leftpanel.appendChild(textElem);
-    }
+        ws.onmessage = (message) => {myUpdate(message)}        
   </script>
  
    <div class = "uppanel">
@@ -93,9 +96,11 @@ function myUpdate() {
     <td>
      <div class = "rightpanel" id = "rightpanel">
       <p>leftpanel</p>
-	  <button type = "button" onclick = "addButton()" value = "staticButton">button1</button>
 	  <script>
-	  addButton();
+	  addButton("1","new 1");
+addButton("2","new 2");
+addButton("3","new 3");
+addButton("4","new 4");
 	  </script>
 	  </div>
      </div>
