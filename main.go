@@ -76,15 +76,18 @@ func (b *Bus) Run() {
 		select {
 		case message := <-b.broadcast:
 			for client := range b.clients {
-				log.Println("broadcast:", message)
-				w, err := client.NextWriter(websocket.TextMessage)
-				if err != nil {
-					b.room.Count--
-					delete(b.clients, client)
-					continue
-				}
+				for i := 0; i < 5; i++ {
+					<-time.After(5 * time.Second)
+					log.Println("broadcast:", message)
+					w, err := client.NextWriter(websocket.TextMessage)
+					if err != nil {
+						b.room.Count--
+						delete(b.clients, client)
+						continue
+					}
 
-				w.Write(message)
+					w.Write(message)
+				}
 			}
 		case client := <-b.register:
 			log.Println("User registered")
@@ -146,4 +149,5 @@ func main() {
 	})
 
 	http.ListenAndServe(":8081", nil)
+
 }
