@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -19,6 +20,11 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
+}
+
+type Message struct {
+	Type string           `json:"type"`
+	Body *json.RawMessage `json:"body"`
 }
 
 type Room struct {
@@ -124,6 +130,33 @@ func runRoom(room *Room) {
 	}
 }
 
+func getRooms(w http.ResponseWriter, r *http.Request) {
+
+	rl, err := json.Marshal(rooms)
+	if err != nil {
+		log.Println(err.Error)
+	}
+
+	body := json.RawMessage(rl)
+
+	msg := Message{Type: "RoomsList", Body: &body}
+
+	m, err := json.Marshal(msg)
+	if err != nil {
+		log.Println(err.Error)
+	}
+
+	w.Write(m)
+}
+
+func indexHeandler(w http.ResponseWriter, r *http.Request) {
+	t, err := template.New("index.html").ParseFiles("templates/index.html")
+	if (err) != nil {
+		log.Println(w, err.Error())
+	}
+	t.Execute(w, nil)
+}
+
 func main() {
 
 	room0 = newRoom("0 room")
@@ -147,6 +180,8 @@ func main() {
 
 		room0.bus.register <- ws
 	})
+	http.HandleFunc("/", indexHeandler)
+	http.HandleFunc("/getRooms", getRooms)
 
 	http.ListenAndServe(":8081", nil)
 
